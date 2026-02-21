@@ -68,14 +68,50 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
     const roleColor = ROLE_COLORS[role] || "#6366f1";
 
     const menuItems = [
-        { icon: LayoutDashboard, label: "Dashboard", path: ROLE_ROUTES[role] },
-        { icon: Truck, label: "Vehicle Registry", path: "/vehicle-registry" },
-        { icon: Clock, label: "Trip Dispatcher", path: "/trip-dispatcher" },
-        { icon: TrendingUp, label: "Maintenance", path: "/maintenance", badge: "3" },
-        { icon: Wallet, label: "Trip & Expense", path: "/expenses" },
-        { icon: ShieldAlert, label: "Performance", path: "/performance" },
-        { icon: BarChart3, label: "Analytics", path: "/analytics" },
-    ];
+        {
+            icon: LayoutDashboard,
+            label: "Dashboard",
+            path: ROLE_ROUTES[role],
+            roles: ["fleet_manager", "dispatcher", "safety_officer", "finance_analyst"]
+        },
+        {
+            icon: Truck,
+            label: "Vehicle Registry",
+            path: "/vehicle-registry",
+            roles: ["fleet_manager"]
+        },
+        {
+            icon: Clock,
+            label: "Trip Dispatcher",
+            path: "/trip-dispatcher",
+            roles: ["dispatcher"]
+        },
+        {
+            icon: TrendingUp,
+            label: "Maintenance",
+            path: "/maintenance",
+            badge: "3",
+            roles: ["fleet_manager"]
+        },
+        {
+            icon: Wallet,
+            label: "Trip & Expense",
+            path: "/expenses",
+            roles: ["finance_analyst"]
+        },
+        {
+            icon: ShieldAlert,
+            label: "Performance",
+            path: "/performance",
+            roles: ["safety_officer"]
+        },
+        {
+            icon: BarChart3,
+            label: "Analytics",
+            path: "/analytics",
+            roles: ["finance_analyst"]
+        },
+    ].filter(item => item.roles.includes(role));
 
     return (
         <div className="dashboard-container">
@@ -99,7 +135,7 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
                                 icon={item.icon}
                                 label={item.label}
                                 path={item.path}
-                                active={location.pathname === item.path && item.label === "Dashboard"}
+                                active={location.pathname === item.path}
                                 badge={item.badge}
                             />
                         ))}

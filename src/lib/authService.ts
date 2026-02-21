@@ -41,7 +41,49 @@ const SESSION_KEY = "fleetos_session";
 // Helper to get all users
 const getUsers = (): User[] => {
     const data = localStorage.getItem(USERS_KEY);
-    return data ? JSON.parse(data) : [];
+    let users = data ? JSON.parse(data) : [];
+    
+    // Add default users if none exist
+    if (users.length === 0) {
+        users = [
+            {
+                uid: "fleet_manager_1",
+                name: "Fleet Manager",
+                email: "fleet@demo.com",
+                password: "demo123",
+                role: "fleet_manager" as UserRole,
+                createdAt: new Date().toISOString(),
+            },
+            {
+                uid: "dispatcher_1",
+                name: "Dispatcher",
+                email: "dispatch@demo.com",
+                password: "demo123",
+                role: "dispatcher" as UserRole,
+                createdAt: new Date().toISOString(),
+            },
+            {
+                uid: "safety_officer_1",
+                name: "Safety Officer",
+                email: "safety@demo.com",
+                password: "demo123",
+                role: "safety_officer" as UserRole,
+                createdAt: new Date().toISOString(),
+            },
+            {
+                uid: "finance_analyst_1",
+                name: "Finance Analyst",
+                email: "finance@demo.com",
+                password: "demo123",
+                role: "finance_analyst" as UserRole,
+                createdAt: new Date().toISOString(),
+            },
+        ];
+        saveUsers(users);
+        console.log("Created default demo users");
+    }
+    
+    return users;
 };
 
 // Helper to save all users
