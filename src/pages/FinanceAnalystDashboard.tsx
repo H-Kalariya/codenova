@@ -1,71 +1,92 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import { logOut } from "../lib/authService";
-import toast from "react-hot-toast";
+import DashboardLayout from "../components/DashboardLayout";
+import {
+    StatCard,
+    DataTable,
+    StatusBadge,
+    ActionBar,
+    PrimaryButton
+} from "../components/DashboardComponents";
+import {
+    DollarSign,
+    TrendingUp,
+    CreditCard,
+    BarChart2,
+    Plus,
+    Download
+} from "lucide-react";
 
 export default function FinanceAnalystDashboard() {
-    const { currentUser } = useAuth();
-    const navigate = useNavigate();
-
-    const handleLogout = async () => {
-        await logOut();
-        toast.success("Logged out successfully");
-        navigate("/login", { replace: true });
-    };
-
     const stats = [
-        { label: "Monthly Spend", value: "$84K", meta: "↑ 6% vs last month", color: "#3b82f6" },
-        { label: "Fuel Cost / Mile", value: "$0.31", meta: "↓ $0.02 this week", color: "#10b981" },
-        { label: "Maintenance Budget", value: "73%", meta: "Used of Q1 budget", color: "#f59e0b" },
-        { label: "Cost Savings", value: "$12K", meta: "Route optimization", color: "#6366f1" },
+        {
+            label: "Monthly Revenue",
+            value: "$428.5k",
+            trend: { value: "12%", isUp: true },
+            color: "#10b981",
+            icon: DollarSign
+        },
+        {
+            label: "Fuel Expenses",
+            value: "$142.2k",
+            trend: { value: "4%", isUp: false },
+            color: "#ef4444",
+            icon: TrendingUp
+        },
+        {
+            label: "Pending Invoices",
+            value: "24",
+            meta: "$18.4k outstanding",
+            color: "#f59e0b",
+            icon: CreditCard
+        },
+        {
+            label: "Net Margin",
+            value: "28.4%",
+            trend: { value: "2.1%", isUp: true },
+            color: "#3b82f6",
+            icon: BarChart2
+        },
+    ];
+
+    const financeData = [
+        { id: "1", invoice: "INV-2001", client: "Global Logistics", amount: "$12,400", date: "2023-11-20", status: "Paid", type: "success" },
+        { id: "2", invoice: "INV-2002", client: "FastTrack Inc", amount: "$8,200", date: "2023-11-21", status: "Pending", type: "warning" },
+        { id: "3", invoice: "INV-2003", client: "City Delivery Co", amount: "$15,750", date: "2023-11-22", status: "Sent", type: "info" },
+        { id: "4", invoice: "INV-2004", client: "Harbor Freight", amount: "$6,100", date: "2023-11-22", status: "Paid", type: "success" },
+        { id: "5", invoice: "INV-2005", client: "Summit Transport", amount: "$9,300", date: "2023-11-23", status: "Overdue", type: "error" },
+    ];
+
+    const columns = [
+        { key: "invoice", label: "Invoice #" },
+        { key: "client", label: "Client" },
+        { key: "amount", label: "Amount" },
+        { key: "date", label: "Due Date" },
+        {
+            key: "status",
+            label: "Status",
+            render: (item: any) => <StatusBadge status={item.status} type={item.type} />
+        },
     ];
 
     return (
-        <div className="dashboard-bg">
-            {/* Nav */}
-            <nav className="dashboard-nav">
-                <div className="dashboard-brand">
-                    <div className="dashboard-brand-dot" style={{ background: "#3b82f6", boxShadow: "0 0 8px #3b82f6" }} />
-                    📊 FleetOS
+        <DashboardLayout role="finance_analyst">
+            <ActionBar title="Financial Insights">
+                <div className="flex gap-3">
+                    <PrimaryButton label="Export PDF" icon={Download} />
+                    <PrimaryButton label="Create Invoice" icon={Plus} />
                 </div>
-                <div className="dashboard-nav-right">
-                    <span
-                        className="role-badge"
-                        style={{ background: "#3b82f618", color: "#3b82f6", border: "1px solid #3b82f630" }}
-                    >
-                        Finance Analyst
-                    </span>
-                    <button className="btn-logout" onClick={handleLogout}>
-                        Sign out
-                    </button>
-                </div>
-            </nav>
+            </ActionBar>
 
-            {/* Hero */}
-            <div className="dashboard-hero">
-                <p className="dashboard-greeting">Financial Overview 📊</p>
-                <h2 className="dashboard-title">
-                    Welcome,{" "}
-                    <span style={{ color: "#3b82f6" }}>
-                        {currentUser?.displayName || "Finance Analyst"}
-                    </span>
-                </h2>
-                <p className="dashboard-subtitle">
-                    Track fleet costs, manage budgets, and identify savings opportunities across operations.
-                </p>
-
-                <div className="stats-grid">
-                    {stats.map((s) => (
-                        <div className="stat-card" key={s.label}>
-                            <p className="stat-label">{s.label}</p>
-                            <p className="stat-value" style={{ color: s.color }}>
-                                {s.value}
-                            </p>
-                            <p className="stat-meta">{s.meta}</p>
-                        </div>
-                    ))}
-                </div>
+            <div className="stats-grid mb-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                {stats.map((s, idx) => (
+                    <StatCard key={idx} {...s} />
+                ))}
             </div>
-        </div>
+
+            <DataTable
+                title="Recent Transactions"
+                columns={columns}
+                data={financeData}
+            />
+        </DashboardLayout>
     );
 }

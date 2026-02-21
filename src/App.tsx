@@ -10,6 +10,12 @@ import FleetManagerDashboard from "./pages/FleetManagerDashboard";
 import DispatcherDashboard from "./pages/DispatcherDashboard";
 import SafetyOfficerDashboard from "./pages/SafetyOfficerDashboard";
 import FinanceAnalystDashboard from "./pages/FinanceAnalystDashboard";
+import VehicleRegistry from "./pages/VehicleRegistry";
+import TripDispatcher from "./pages/TripDispatcher";
+import MaintenanceLogs from "./pages/MaintenanceLogs";
+import ExpenseLogging from "./pages/ExpenseLogging";
+import DriverProfiles from "./pages/DriverProfiles";
+import OperationalAnalytics from "./pages/OperationalAnalytics";
 
 // Full-screen loading spinner shown while Firebase resolves auth state
 function LoadingScreen() {
@@ -38,7 +44,7 @@ function LoadingScreen() {
       />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <span style={{ color: "#565670", fontSize: "0.875rem", letterSpacing: "0.3px" }}>
-        Verifying session...
+        Initializing authentication...
       </span>
     </div>
   );
@@ -104,6 +110,54 @@ function App() {
             element={
               <ProtectedRoute requiredRole="finance_analyst">
                 <FinanceAnalystDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vehicle-registry"
+            element={
+              <ProtectedRoute requiredRole="fleet_manager">
+                <VehicleRegistry />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trip-dispatcher"
+            element={
+              <ProtectedRoute requiredRole="dispatcher">
+                <TripDispatcher />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/maintenance"
+            element={
+              <ProtectedRoute requiredRole="fleet_manager">
+                <MaintenanceLogs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/expenses"
+            element={
+              <ProtectedRoute requiredRole="finance_analyst">
+                <ExpenseLogging />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/performance"
+            element={
+              <ProtectedRoute requiredRole="safety_officer">
+                <DriverProfiles />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute requiredRole="finance_analyst">
+                <OperationalAnalytics />
               </ProtectedRoute>
             }
           />

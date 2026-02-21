@@ -1,4 +1,4 @@
-import React, {
+import {
     createContext,
     useContext,
     useEffect,
@@ -21,6 +21,7 @@ const AuthContext = createContext<AuthContextType>({
     loading: true,
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
     return useContext(AuthContext);
 }
@@ -32,17 +33,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            setCurrentUser(user);
-            if (user) {
-                const role = await getUserRole(user.uid);
-                setUserRole(role);
-            } else {
+            try {
+                setCurrentUser(user);
+                if (user) {
+                    const role = await getUserRole(user.uid);
+                    setUserRole(role);
+                } else {
+                    setUserRole(null);
+                }
+            } catch (error) {
+                console.error("Auth initialization error:", error);
                 setUserRole(null);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         });
 
-        return unsubscribe;
+        // Add timeout to prevent infinite loading
+        const timeout = setTimeout(() => {
+            setLoading(false);
+            console.warn("Auth initialization timed out after 5 seconds");
+        }, 5000);
+
+        return () => {
+            unsubscribe();
+            clearTimeout(timeout);
+        };
     }, []);
 
     return (

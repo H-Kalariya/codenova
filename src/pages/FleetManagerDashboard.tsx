@@ -1,71 +1,113 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import { logOut } from "../lib/authService";
-import toast from "react-hot-toast";
+import DashboardLayout from "../components/DashboardLayout";
+import {
+    StatCard,
+    DataTable,
+    StatusBadge,
+    ActionBar,
+    PrimaryButton
+} from "../components/DashboardComponents";
+import {
+    Truck,
+    Navigation,
+    Activity,
+    Plus,
+    AlertTriangle,
+    Package
+} from "lucide-react";
 
 export default function FleetManagerDashboard() {
-    const { currentUser } = useAuth();
-    const navigate = useNavigate();
-
-    const handleLogout = async () => {
-        await logOut();
-        toast.success("Logged out successfully");
-        navigate("/login", { replace: true });
-    };
-
     const stats = [
-        { label: "Active Vehicles", value: "48", meta: "↑ 3 this week", color: "#6366f1" },
-        { label: "Active Routes", value: "21", meta: "Across 5 regions", color: "#10b981" },
-        { label: "Drivers On Duty", value: "39", meta: "6 on break", color: "#f59e0b" },
-        { label: "Fleet Utilization", value: "87%", meta: "↑ 4% vs last month", color: "#3b82f6" },
+        {
+            label: "Active Fleet",
+            value: "220",
+            trend: { value: "12%", isUp: true },
+            color: "#6366f1",
+            icon: Truck
+        },
+        {
+            label: "Maintenance Alerts",
+            value: "180",
+            trend: { value: "5%", isUp: false },
+            color: "#f59e0b",
+            icon: AlertTriangle
+        },
+        {
+            label: "Pending Cargo",
+            value: "20",
+            meta: "Ready to ship",
+            color: "#10b981",
+            icon: Package
+        },
+        {
+            label: "Utilization Rate",
+            value: "87%",
+            trend: { value: "4%", isUp: true },
+            color: "#3b82f6",
+            icon: Activity
+        },
+    ];
+
+    const fleetData = [
+        { id: "1", trip: "TRP-8820", vehicle: "Volvo FH16 - GV-9920", driver: "John Doe", status: "On Trip", type: "success" },
+        { id: "2", trip: "TRP-8821", vehicle: "Scania R500 - AX-1102", driver: "Sarah Smith", status: "Maintenance", type: "warning" },
+        { id: "3", trip: "TRP-8822", vehicle: "Mercedes Actros - KL-4491", driver: "Michael Ross", status: "Ready", type: "info" },
+        { id: "4", trip: "TRP-8823", vehicle: "MAN TGX - RT-2231", driver: "Emma Wilson", status: "On Trip", type: "success" },
+        { id: "5", trip: "TRP-8824", vehicle: "Iveco S-Way - NM-8812", driver: "David Brown", status: "Delayed", type: "error" },
+    ];
+
+    const columns = [
+        { key: "trip", label: "Trip ID" },
+        {
+            key: "vehicle",
+            label: "Vehicle",
+            render: (item: any) => (
+                <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-white/5 text-indigo">
+                        <Truck size={16} />
+                    </div>
+                    <span>{item.vehicle}</span>
+                </div>
+            )
+        },
+        {
+            key: "driver",
+            label: "Driver",
+            render: (item: any) => (
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-indigo/20 flex items-center justify-center text-[10px] font-bold">
+                        {item.driver.split(' ').map((n: string) => n[0]).join('')}
+                    </div>
+                    <span>{item.driver}</span>
+                </div>
+            )
+        },
+        {
+            key: "status",
+            label: "Status",
+            render: (item: any) => <StatusBadge status={item.status} type={item.type} />
+        },
     ];
 
     return (
-        <div className="dashboard-bg">
-            {/* Nav */}
-            <nav className="dashboard-nav">
-                <div className="dashboard-brand">
-                    <div className="dashboard-brand-dot" style={{ background: "#6366f1", boxShadow: "0 0 8px #6366f1" }} />
-                    🚛 FleetOS
+        <DashboardLayout role="fleet_manager">
+            <ActionBar title="Fleet Overview">
+                <div className="flex gap-3">
+                    <PrimaryButton label="New Trip" icon={Navigation} />
+                    <PrimaryButton label="New Vehicle" icon={Plus} />
                 </div>
-                <div className="dashboard-nav-right">
-                    <span
-                        className="role-badge"
-                        style={{ background: "#6366f118", color: "#6366f1", border: "1px solid #6366f130" }}
-                    >
-                        Fleet Manager
-                    </span>
-                    <button className="btn-logout" onClick={handleLogout}>
-                        Sign out
-                    </button>
-                </div>
-            </nav>
+            </ActionBar>
 
-            {/* Hero */}
-            <div className="dashboard-hero">
-                <p className="dashboard-greeting">Good morning 👋</p>
-                <h2 className="dashboard-title">
-                    Welcome back,{" "}
-                    <span style={{ color: "#6366f1" }}>
-                        {currentUser?.displayName || "Fleet Manager"}
-                    </span>
-                </h2>
-                <p className="dashboard-subtitle">
-                    Here's your fleet overview for today. Everything is running smoothly.
-                </p>
-
-                <div className="stats-grid">
-                    {stats.map((s) => (
-                        <div className="stat-card" key={s.label}>
-                            <p className="stat-label">{s.label}</p>
-                            <p className="stat-value" style={{ color: s.color }}>
-                                {s.value}
-                            </p>
-                            <p className="stat-meta">{s.meta}</p>
-                        </div>
-                    ))}
-                </div>
+            <div className="stats-grid mb-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                {stats.map((s, idx) => (
+                    <StatCard key={idx} {...s} />
+                ))}
             </div>
-        </div>
+
+            <DataTable
+                title="Live Operations"
+                columns={columns}
+                data={fleetData}
+            />
+        </DashboardLayout>
     );
 }
