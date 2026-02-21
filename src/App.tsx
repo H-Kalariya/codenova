@@ -10,6 +10,7 @@ import FleetManagerDashboard from "./pages/FleetManagerDashboard";
 import DispatcherDashboard from "./pages/DispatcherDashboard";
 import SafetyOfficerDashboard from "./pages/SafetyOfficerDashboard";
 import FinanceAnalystDashboard from "./pages/FinanceAnalystDashboard";
+import VehicleRegistry from "./pages/VehicleRegistry";
 
 // Full-screen loading spinner shown while Firebase resolves auth state
 function LoadingScreen() {
@@ -104,6 +105,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="finance_analyst">
                 <FinanceAnalystDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vehicle-registry"
+            element={
+              <ProtectedRoute requiredRole="fleet_manager">
+                <VehicleRegistry />
               </ProtectedRoute>
             }
           />

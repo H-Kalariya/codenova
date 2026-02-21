@@ -1,71 +1,102 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import { logOut } from "../lib/authService";
-import toast from "react-hot-toast";
+import DashboardLayout from "../components/DashboardLayout";
+import {
+    StatCard,
+    DataTable,
+    StatusBadge,
+    ActionBar,
+    PrimaryButton
+} from "../components/DashboardComponents";
+import {
+    ShieldCheck,
+    AlertTriangle,
+    Clock,
+    FileText,
+    Plus,
+    History
+} from "lucide-react";
 
 export default function SafetyOfficerDashboard() {
-    const { currentUser } = useAuth();
-    const navigate = useNavigate();
-
-    const handleLogout = async () => {
-        await logOut();
-        toast.success("Logged out successfully");
-        navigate("/login", { replace: true });
-    };
-
     const stats = [
-        { label: "Open Incidents", value: "3", meta: "2 under review", color: "#f59e0b" },
-        { label: "Compliance Score", value: "96%", meta: "↑ 2% this quarter", color: "#10b981" },
-        { label: "Inspections Due", value: "7", meta: "This week", color: "#ef4444" },
-        { label: "Days Incident-Free", value: "42", meta: "Company record: 87", color: "#6366f1" },
+        {
+            label: "Incident-Free Days",
+            value: "128",
+            trend: { value: "14", isUp: true },
+            color: "#10b981",
+            icon: ShieldCheck
+        },
+        {
+            label: "Open Violations",
+            value: "3",
+            trend: { value: "1", isUp: false },
+            color: "#ef4444",
+            icon: AlertTriangle
+        },
+        {
+            label: "Pending Audits",
+            value: "8",
+            meta: "Next review in 2 days",
+            color: "#f59e0b",
+            icon: Clock
+        },
+        {
+            label: "Compliance Score",
+            value: "98%",
+            trend: { value: "0.5%", isUp: true },
+            color: "#3b82f6",
+            icon: ShieldCheck
+        },
+    ];
+
+    const safetyData = [
+        { id: "1", report: "SR-5501", area: "Vehicle Maintenance", severity: "Low", status: "Resolved", type: "success" },
+        { id: "2", report: "SR-5502", area: "Driver Rest Periods", severity: "High", status: "Open", type: "error" },
+        { id: "3", report: "SR-5503", area: "Cargo Securement", severity: "Medium", status: "Under Review", type: "warning" },
+        { id: "4", report: "SR-5504", area: "Equipment Inspection", severity: "Low", status: "Resolved", type: "success" },
+        { id: "5", report: "SR-5505", area: "Route Risk Assessment", severity: "Medium", status: "Open", type: "error" },
+    ];
+
+    const columns = [
+        { key: "report", label: "Report ID" },
+        { key: "area", label: "Safety Area" },
+        {
+            key: "severity",
+            label: "Severity",
+            render: (item: any) => (
+                <span style={{
+                    color: item.severity === 'High' ? '#ef4444' : item.severity === 'Medium' ? '#f59e0b' : '#10b981',
+                    fontWeight: 600
+                }}>
+                    {item.severity}
+                </span>
+            )
+        },
+        {
+            key: "status",
+            label: "Status",
+            render: (item: any) => <StatusBadge status={item.status} type={item.type} />
+        },
     ];
 
     return (
-        <div className="dashboard-bg">
-            {/* Nav */}
-            <nav className="dashboard-nav">
-                <div className="dashboard-brand">
-                    <div className="dashboard-brand-dot" style={{ background: "#f59e0b", boxShadow: "0 0 8px #f59e0b" }} />
-                    🛡️ FleetOS
+        <DashboardLayout role="safety_officer">
+            <ActionBar title="Safety & Compliance">
+                <div className="flex gap-3">
+                    <PrimaryButton label="Safety Logs" icon={History} />
+                    <PrimaryButton label="File Report" icon={Plus} />
                 </div>
-                <div className="dashboard-nav-right">
-                    <span
-                        className="role-badge"
-                        style={{ background: "#f59e0b18", color: "#f59e0b", border: "1px solid #f59e0b30" }}
-                    >
-                        Safety Officer
-                    </span>
-                    <button className="btn-logout" onClick={handleLogout}>
-                        Sign out
-                    </button>
-                </div>
-            </nav>
+            </ActionBar>
 
-            {/* Hero */}
-            <div className="dashboard-hero">
-                <p className="dashboard-greeting">Safety First 🛡️</p>
-                <h2 className="dashboard-title">
-                    Welcome,{" "}
-                    <span style={{ color: "#f59e0b" }}>
-                        {currentUser?.displayName || "Safety Officer"}
-                    </span>
-                </h2>
-                <p className="dashboard-subtitle">
-                    Monitor compliance, incidents, and ensure all fleet operations meet safety standards.
-                </p>
-
-                <div className="stats-grid">
-                    {stats.map((s) => (
-                        <div className="stat-card" key={s.label}>
-                            <p className="stat-label">{s.label}</p>
-                            <p className="stat-value" style={{ color: s.color }}>
-                                {s.value}
-                            </p>
-                            <p className="stat-meta">{s.meta}</p>
-                        </div>
-                    ))}
-                </div>
+            <div className="stats-grid mb-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                {stats.map((s, idx) => (
+                    <StatCard key={idx} {...s} />
+                ))}
             </div>
-        </div>
+
+            <DataTable
+                title="Recent Incidents & Audits"
+                columns={columns}
+                data={safetyData}
+            />
+        </DashboardLayout>
     );
 }

@@ -1,71 +1,100 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import { logOut } from "../lib/authService";
-import toast from "react-hot-toast";
+import DashboardLayout from "../components/DashboardLayout";
+import {
+    StatCard,
+    DataTable,
+    StatusBadge,
+    ActionBar,
+    PrimaryButton
+} from "../components/DashboardComponents";
+import {
+    UserPlus,
+    Calendar,
+    MapPin,
+    Clock,
+    Plus,
+    CheckCircle2
+} from "lucide-react";
 
 export default function DispatcherDashboard() {
-    const { currentUser } = useAuth();
-    const navigate = useNavigate();
-
-    const handleLogout = async () => {
-        await logOut();
-        toast.success("Logged out successfully");
-        navigate("/login", { replace: true });
-    };
-
     const stats = [
-        { label: "Active Dispatches", value: "14", meta: "3 pending assignment", color: "#10b981" },
-        { label: "In Transit", value: "27", meta: "On schedule", color: "#6366f1" },
-        { label: "Completed Today", value: "62", meta: "↑ 8 vs yesterday", color: "#3b82f6" },
-        { label: "Avg. Dispatch Time", value: "4m", meta: "↓ 30s improvement", color: "#f59e0b" },
+        {
+            label: "Available Drivers",
+            value: "42",
+            trend: { value: "8%", isUp: true },
+            color: "#10b981",
+            icon: UserPlus
+        },
+        {
+            label: "Active Trips",
+            value: "86",
+            trend: { value: "15%", isUp: true },
+            color: "#6366f1",
+            icon: MapPin
+        },
+        {
+            label: "Pending Assignments",
+            value: "12",
+            trend: { value: "2", isUp: false },
+            color: "#f59e0b",
+            icon: Clock
+        },
+        {
+            label: "Completed Today",
+            value: "124",
+            trend: { value: "10%", isUp: true },
+            color: "#3b82f6",
+            icon: CheckCircle2
+        },
+    ];
+
+    const dispatchData = [
+        { id: "1", trip: "TRP-9001", driver: "Alice Cooper", vehicle: "Truck A1", route: "New York → Boston", status: "On Way", type: "success" },
+        { id: "2", trip: "TRP-9002", driver: "Bob Marley", vehicle: "Van V2", route: "Chicago → Detroit", status: "Pending", type: "warning" },
+        { id: "3", trip: "TRP-9003", driver: "Charlie Day", vehicle: "Truck A3", route: "Miami → Orlando", status: "Loading", type: "info" },
+        { id: "4", trip: "TRP-9004", driver: "Diana Ross", vehicle: "Truck B1", route: "Seattle → Portland", status: "Assigned", type: "neutral" },
+        { id: "5", trip: "TRP-9005", driver: "Edward Norton", vehicle: "Van V5", route: "Austin → Dallas", status: "On Way", type: "success" },
+    ];
+
+    const columns = [
+        { key: "trip", label: "Trip ID" },
+        {
+            key: "route",
+            label: "Route",
+            render: (item: any) => (
+                <div className="flex flex-col">
+                    <span className="font-medium text-primary">{item.route}</span>
+                    <span className="text-xs text-muted">{item.vehicle}</span>
+                </div>
+            )
+        },
+        { key: "driver", label: "Driver" },
+        {
+            key: "status",
+            label: "Status",
+            render: (item: any) => <StatusBadge status={item.status} type={item.type} />
+        },
     ];
 
     return (
-        <div className="dashboard-bg">
-            {/* Nav */}
-            <nav className="dashboard-nav">
-                <div className="dashboard-brand">
-                    <div className="dashboard-brand-dot" style={{ background: "#10b981", boxShadow: "0 0 8px #10b981" }} />
-                    📡 FleetOS
+        <DashboardLayout role="dispatcher">
+            <ActionBar title="Trip Dispatcher">
+                <div className="flex gap-3">
+                    <PrimaryButton label="Calendar View" icon={Calendar} />
+                    <PrimaryButton label="New Assignment" icon={Plus} />
                 </div>
-                <div className="dashboard-nav-right">
-                    <span
-                        className="role-badge"
-                        style={{ background: "#10b98118", color: "#10b981", border: "1px solid #10b98130" }}
-                    >
-                        Dispatcher
-                    </span>
-                    <button className="btn-logout" onClick={handleLogout}>
-                        Sign out
-                    </button>
-                </div>
-            </nav>
+            </ActionBar>
 
-            {/* Hero */}
-            <div className="dashboard-hero">
-                <p className="dashboard-greeting">Live Operations 🟢</p>
-                <h2 className="dashboard-title">
-                    Welcome,{" "}
-                    <span style={{ color: "#10b981" }}>
-                        {currentUser?.displayName || "Dispatcher"}
-                    </span>
-                </h2>
-                <p className="dashboard-subtitle">
-                    Manage and coordinate all active dispatches and deliveries in real time.
-                </p>
-
-                <div className="stats-grid">
-                    {stats.map((s) => (
-                        <div className="stat-card" key={s.label}>
-                            <p className="stat-label">{s.label}</p>
-                            <p className="stat-value" style={{ color: s.color }}>
-                                {s.value}
-                            </p>
-                            <p className="stat-meta">{s.meta}</p>
-                        </div>
-                    ))}
-                </div>
+            <div className="stats-grid mb-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                {stats.map((s, idx) => (
+                    <StatCard key={idx} {...s} />
+                ))}
             </div>
-        </div>
+
+            <DataTable
+                title="Active Dispatches"
+                columns={columns}
+                data={dispatchData}
+            />
+        </DashboardLayout>
     );
 }
