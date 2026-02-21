@@ -3,11 +3,11 @@ import React, {
     useContext,
     useEffect,
     useState,
-    ReactNode,
+    type ReactNode,
 } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "../lib/firebase";
-import { getUserRole, UserRole } from "../lib/authService";
+import { getUserRole, type UserRole } from "../lib/authService";
 
 interface AuthContextType {
     currentUser: User | null;
