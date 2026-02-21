@@ -69,18 +69,45 @@ export async function logIn(
     );
     const user = userCredential.user;
 
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (!userDoc.exists()) {
-        throw new Error("User profile not found. Please contact support.");
+    // Retry mechanism for Firestore access
+    let retries = 3;
+    let lastError: any;
+    
+    while (retries > 0) {
+        try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (!userDoc.exists()) {
+                throw new Error("User profile not found. Please contact support.");
+            }
+            return userDoc.data().role as UserRole;
+        } catch (error) {
+            lastError = error;
+            retries--;
+            if (retries > 0) {
+                console.log(`Retrying user role fetch, ${retries} attempts left...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
     }
-
-    return userDoc.data().role as UserRole;
+    
+    throw lastError || new Error("Failed to fetch user role after multiple attempts.");
 }
 
 export async function getUserRole(uid: string): Promise<UserRole | null> {
-    const userDoc = await getDoc(doc(db, "users", uid));
-    if (!userDoc.exists()) return null;
-    return userDoc.data().role as UserRole;
+    const timeout = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error("Firestore request timed out. Please check your internet connection or Firebase setup.")), 5000)
+    );
+
+    try {
+        const userDocPromise = getDoc(doc(db, "users", uid));
+        const userDoc = await Promise.race([userDocPromise, timeout]) as any;
+
+        if (!userDoc || !userDoc.exists()) return null;
+        return userDoc.data().role as UserRole;
+    } catch (error) {
+        console.error("getUserRole error:", error);
+        throw error;
+    }
 }
 
 export async function logOut(): Promise<void> {

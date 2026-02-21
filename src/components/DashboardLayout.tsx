@@ -70,11 +70,11 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
     const menuItems = [
         { icon: LayoutDashboard, label: "Dashboard", path: location.pathname },
         { icon: Truck, label: "Vehicle Registry", path: "/vehicle-registry" },
-        { icon: Clock, label: "Trip Dispatcher", path: "/dispatcher" },
-        { icon: TrendingUp, label: "Maintenance", path: "#", badge: "3" },
-        { icon: Wallet, label: "Trip & Expense", path: "#" },
-        { icon: ShieldAlert, label: "Performance", path: "#" },
-        { icon: BarChart3, label: "Analytics", path: "#" },
+        { icon: Clock, label: "Trip Dispatcher", path: "/trip-dispatcher" },
+        { icon: TrendingUp, label: "Maintenance", path: "/maintenance", badge: "3" },
+        { icon: Wallet, label: "Trip & Expense", path: "/expenses" },
+        { icon: ShieldAlert, label: "Performance", path: "/performance" },
+        { icon: BarChart3, label: "Analytics", path: "/analytics" },
     ];
 
     return (

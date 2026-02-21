@@ -34,7 +34,9 @@ export default function Login() {
             setTimeout(() => navigate(ROLE_ROUTES[role], { replace: true }), 800);
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Login failed.";
-            if (message.includes("invalid-credential") || message.includes("wrong-password") || message.includes("user-not-found")) {
+            if (message.includes("offline") || message.includes("network")) {
+                setError("Network connection failed. Please check your internet connection and try again.");
+            } else if (message.includes("invalid-credential") || message.includes("wrong-password") || message.includes("user-not-found")) {
                 setError("Invalid email or password. Please try again.");
             } else {
                 setError(message);
