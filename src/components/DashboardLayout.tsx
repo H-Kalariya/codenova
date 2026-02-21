@@ -18,8 +18,8 @@ import {
     HelpCircle,
     Wallet
 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
-import { logOut, ROLE_LABELS, ROLE_COLORS, type UserRole } from "../lib/authService";
+import { useAuth } from "../hooks/useAuth";
+import { logOut, ROLE_LABELS, ROLE_COLORS, ROLE_ROUTES, type UserRole } from "../lib/authService";
 import toast from "react-hot-toast";
 
 interface SidebarItemProps {
@@ -68,7 +68,7 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
     const roleColor = ROLE_COLORS[role] || "#6366f1";
 
     const menuItems = [
-        { icon: LayoutDashboard, label: "Dashboard", path: location.pathname },
+        { icon: LayoutDashboard, label: "Dashboard", path: ROLE_ROUTES[role] },
         { icon: Truck, label: "Vehicle Registry", path: "/vehicle-registry" },
         { icon: Clock, label: "Trip Dispatcher", path: "/trip-dispatcher" },
         { icon: TrendingUp, label: "Maintenance", path: "/maintenance", badge: "3" },
@@ -154,10 +154,10 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                             >
                                 <div className="user-avatar">
-                                    {currentUser?.displayName?.[0] || <UserIcon size={18} />}
+                                    {currentUser?.name?.[0] || <UserIcon size={18} />}
                                 </div>
                                 <div className="user-info mobile-hide">
-                                    <span className="user-name">{currentUser?.displayName || "User"}</span>
+                                    <span className="user-name">{currentUser?.name || "User"}</span>
                                     <span
                                         className="user-role"
                                         style={{ color: roleColor }}

@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import type { UserRole } from "../lib/authService";
 import { ROLE_ROUTES } from "../lib/authService";
 import type { ReactNode } from "react";
@@ -49,7 +49,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
 
     if (requiredRole && userRole !== requiredRole) {
         // Redirect to their own dashboard
-        const correctRoute = userRole ? ROLE_ROUTES[userRole] : "/login";
+        const correctRoute = userRole ? ROLE_ROUTES[userRole as UserRole] : "/login";
         return <Navigate to={correctRoute} replace />;
     }
 

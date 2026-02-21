@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./contexts/AuthContext";
-import { useAuth } from "./contexts/AuthContext";
-import { ROLE_ROUTES } from "./lib/authService";
+import { useAuth } from "./hooks/useAuth";
+import { ROLE_ROUTES, type UserRole } from "./lib/authService";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -55,7 +55,7 @@ function RootRedirect() {
   const { currentUser, userRole, loading } = useAuth();
   if (loading) return <LoadingScreen />;
   if (!currentUser) return <Navigate to="/login" replace />;
-  if (userRole) return <Navigate to={ROLE_ROUTES[userRole]} replace />;
+  if (userRole) return <Navigate to={ROLE_ROUTES[userRole as UserRole]} replace />;
   return <Navigate to="/login" replace />;
 }
 
@@ -63,7 +63,7 @@ function RootRedirect() {
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { currentUser, userRole, loading } = useAuth();
   if (loading) return <LoadingScreen />;
-  if (currentUser && userRole) return <Navigate to={ROLE_ROUTES[userRole]} replace />;
+  if (currentUser && userRole) return <Navigate to={ROLE_ROUTES[userRole as UserRole]} replace />;
   return <>{children}</>;
 }
 

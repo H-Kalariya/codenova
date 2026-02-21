@@ -2,10 +2,12 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import { logIn, ROLE_LABELS, ROLE_ROUTES } from "../lib/authService";
+import { logIn, ROLE_LABELS, ROLE_ROUTES, getCurrentUser } from "../lib/authService";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Login() {
     const navigate = useNavigate();
+    const { setCurrentUser, setUserRole } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -23,6 +25,11 @@ export default function Login() {
         setLoading(true);
         try {
             const role = await logIn(email, password);
+            const user = await getCurrentUser();
+
+            setCurrentUser(user);
+            setUserRole(role);
+
             toast.success(`Welcome back, ${ROLE_LABELS[role]}!`, {
                 style: {
                     background: "#1a1a2e",
@@ -33,9 +40,11 @@ export default function Login() {
             });
             setTimeout(() => navigate(ROLE_ROUTES[role], { replace: true }), 800);
         } catch (err: unknown) {
+            console.error("Login Error Object:", err);
             const message = err instanceof Error ? err.message : "Login failed.";
-            if (message.includes("offline") || message.includes("network")) {
-                setError("Network connection failed. Please check your internet connection and try again.");
+
+            if (message.includes("offline") || message.includes("network") || message.includes("connectivity")) {
+                setError(`Network error: ${message}. Check internet and Firestore rules.`);
             } else if (message.includes("invalid-credential") || message.includes("wrong-password") || message.includes("user-not-found")) {
                 setError("Invalid email or password. Please try again.");
             } else {

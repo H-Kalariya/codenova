@@ -3,7 +3,8 @@ import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import type { UserRole } from "../lib/authService";
-import { signUp, ROLE_LABELS, ROLE_ROUTES } from "../lib/authService";
+import { signUp, ROLE_LABELS, ROLE_ROUTES, getCurrentUser } from "../lib/authService";
+import { useAuth } from "../hooks/useAuth";
 
 const ROLES: { value: UserRole; label: string; description: string; color: string; icon: string }[] = [
     {
@@ -38,6 +39,7 @@ const ROLES: { value: UserRole; label: string; description: string; color: strin
 
 export default function Signup() {
     const navigate = useNavigate();
+    const { setCurrentUser, setUserRole } = useAuth();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -66,6 +68,11 @@ export default function Signup() {
         setLoading(true);
         try {
             await signUp(name, email, password, selectedRole);
+            const user = await getCurrentUser();
+
+            setCurrentUser(user);
+            setUserRole(selectedRole);
+
             toast.success(`Account created! Welcome, ${ROLE_LABELS[selectedRole]}.`, {
                 style: {
                     background: "#1a1a2e",

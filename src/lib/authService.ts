@@ -1,17 +1,17 @@
-import {
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    updateProfile,
-} from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { auth, db } from "./firebase";
-
 export type UserRole =
     | "fleet_manager"
     | "dispatcher"
     | "safety_officer"
     | "finance_analyst";
+
+export interface User {
+    uid: string;
+    name: string;
+    email: string;
+    password?: string;
+    role: UserRole;
+    createdAt: string;
+}
 
 export const ROLE_LABELS: Record<UserRole, string> = {
     fleet_manager: "Fleet Manager",
@@ -34,82 +34,88 @@ export const ROLE_COLORS: Record<UserRole, string> = {
     finance_analyst: "#3b82f6",
 };
 
+// Local storage keys
+const USERS_KEY = "fleetos_users";
+const SESSION_KEY = "fleetos_session";
+
+// Helper to get all users
+const getUsers = (): User[] => {
+    const data = localStorage.getItem(USERS_KEY);
+    return data ? JSON.parse(data) : [];
+};
+
+// Helper to save all users
+const saveUsers = (users: User[]) => {
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+};
+
 export async function signUp(
     name: string,
     email: string,
     password: string,
     role: UserRole
 ): Promise<void> {
-    const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-    );
-    const user = userCredential.user;
+    const users = getUsers();
 
-    await updateProfile(user, { displayName: name });
+    // Check if user already exists
+    if (users.some(u => u.email === email)) {
+        throw new Error("User with this email already exists.");
+    }
 
-    await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
+    const newUser: User = {
+        uid: Math.random().toString(36).substring(2, 15),
         name,
         email,
+        password, // In a real app, this would be hashed
         role,
         createdAt: new Date().toISOString(),
-    });
+    };
+
+    users.push(newUser);
+    saveUsers(users);
+
+    // Auto log in after signup
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ uid: newUser.uid, email: newUser.email }));
 }
 
 export async function logIn(
     email: string,
     password: string
 ): Promise<UserRole> {
-    const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-    );
-    const user = userCredential.user;
+    const users = getUsers();
+    const user = users.find(u => u.email === email && u.password === password);
 
-    // Retry mechanism for Firestore access
-    let retries = 3;
-    let lastError: any;
-    
-    while (retries > 0) {
-        try {
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (!userDoc.exists()) {
-                throw new Error("User profile not found. Please contact support.");
-            }
-            return userDoc.data().role as UserRole;
-        } catch (error) {
-            lastError = error;
-            retries--;
-            if (retries > 0) {
-                console.log(`Retrying user role fetch, ${retries} attempts left...`);
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-        }
+    if (!user) {
+        throw new Error("Invalid email or password.");
     }
-    
-    throw lastError || new Error("Failed to fetch user role after multiple attempts.");
+
+    // Set session
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ uid: user.uid, email: user.email }));
+
+    return user.role;
 }
 
 export async function getUserRole(uid: string): Promise<UserRole | null> {
-    const timeout = new Promise<null>((_, reject) =>
-        setTimeout(() => reject(new Error("Firestore request timed out. Please check your internet connection or Firebase setup.")), 5000)
-    );
+    const users = getUsers();
+    const user = users.find(u => u.uid === uid);
+    return user ? user.role : null;
+}
 
-    try {
-        const userDocPromise = getDoc(doc(db, "users", uid));
-        const userDoc = await Promise.race([userDocPromise, timeout]) as any;
+export async function getCurrentUser(): Promise<User | null> {
+    const sessionData = localStorage.getItem(SESSION_KEY);
+    if (!sessionData) return null;
 
-        if (!userDoc || !userDoc.exists()) return null;
-        return userDoc.data().role as UserRole;
-    } catch (error) {
-        console.error("getUserRole error:", error);
-        throw error;
-    }
+    const { uid } = JSON.parse(sessionData);
+    const users = getUsers();
+    const user = users.find(u => u.uid === uid);
+
+    if (!user) return null;
+
+    // Return user without password
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword as User;
 }
 
 export async function logOut(): Promise<void> {
-    await signOut(auth);
+    localStorage.removeItem(SESSION_KEY);
 }

@@ -1,30 +1,20 @@
 import {
     createContext,
-    useContext,
     useEffect,
     useState,
     type ReactNode,
 } from "react";
-import { onAuthStateChanged, type User } from "firebase/auth";
-import { auth } from "../lib/firebase";
-import { getUserRole, type UserRole } from "../lib/authService";
+import { getCurrentUser, type UserRole, type User } from "../lib/authService";
 
-interface AuthContextType {
+export interface AuthContextType {
     currentUser: User | null;
     userRole: UserRole | null;
     loading: boolean;
+    setCurrentUser: (user: User | null) => void;
+    setUserRole: (role: UserRole | null) => void;
 }
 
-const AuthContext = createContext<AuthContextType>({
-    currentUser: null,
-    userRole: null,
-    loading: true,
-});
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useAuth() {
-    return useContext(AuthContext);
-}
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -32,38 +22,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        const initializeAuth = async () => {
             try {
-                setCurrentUser(user);
+                const user = await getCurrentUser();
                 if (user) {
-                    const role = await getUserRole(user.uid);
-                    setUserRole(role);
-                } else {
-                    setUserRole(null);
+                    setCurrentUser(user);
+                    setUserRole(user.role);
                 }
             } catch (error) {
-                console.error("Auth initialization error:", error);
-                setUserRole(null);
+                console.error("Manual auth initialization error:", error);
             } finally {
                 setLoading(false);
             }
-        });
-
-        // Add timeout to prevent infinite loading
-        const timeout = setTimeout(() => {
-            setLoading(false);
-            console.warn("Auth initialization timed out after 5 seconds");
-        }, 5000);
-
-        return () => {
-            unsubscribe();
-            clearTimeout(timeout);
         };
+
+        initializeAuth();
     }, []);
 
     return (
-        <AuthContext.Provider value={{ currentUser, userRole, loading }}>
+        <AuthContext.Provider
+            value={{
+                currentUser,
+                userRole,
+                loading,
+                setCurrentUser,
+                setUserRole,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );
 }
+
